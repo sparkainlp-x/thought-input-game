@@ -61,7 +61,8 @@ test("main elements exist and nothing external is requested", async () => {
     assert.equal(await page.textContent("#roTau"), "0.35");
     assert.equal(await page.$$eval("#libGrid .lib-item", (e) => e.length), 8);
     assert.equal(await page.textContent("#hudMemory"), "3");
-    const external = requests.filter((u) => /^https?:/.test(u));
+    const own = new URL(URL_UNDER_TEST).origin;
+    const external = requests.filter((u) => /^https?:/.test(u) && new URL(u).origin !== own);
     assert.deepEqual(external, [], "external requests: " + external.join(", "));
     assert.deepEqual(errors, []);
   } finally { await ctx.close(); }
