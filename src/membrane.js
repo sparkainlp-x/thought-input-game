@@ -1,6 +1,7 @@
 /* Thought-Input Game: memory, gate and sonification logic.
  *
- * Extracted unchanged from the single-file game (see CHANGELOG). Plain
+ * Extracted from the single-file game with the logic unchanged, apart from the
+ * documented fixes in the CHANGELOG. Plain
  * ES5-style code so that the same file runs in the browser (as a classic
  * script that defines window.Membrane) and in Node (module.exports).
  * SYNTHETIC toy: a drawn 12 x 12 pattern is the "thought". Nothing here reads
@@ -139,16 +140,38 @@
     });
   }
 
-  // The same linear congruential generator as the original game, kept verbatim.
+  // The game's original generator, kept verbatim as the "legacy" generator and
+  // still the one the game uses, so play stays identical.
   // Note: in JavaScript the product state * 1103515245 exceeds 2^53, so this is
   // NOT the exact integer LCG; it is a deterministic, engine-independent
   // sequence with a cycle of 10,466 draws (after a 2,423-draw lead-in). See docs/behaviour.md.
-  function createRng(seed) {
+  function createLegacyRng(seed) {
     var state = seed === undefined ? DEFAULT_SEED : seed;
     return function rand() {
       state = (state * 1103515245 + 12345) & 0x7fffffff;
       return state / 0x7fffffff;
     };
+  }
+
+  // mulberry32: a well-defined 32-bit generator (period 2^32, exact in integer
+  // arithmetic through Math.imul). Used by the tests and the behaviour script
+  // for sampling. Returns floats in [0, 1).
+  function createMulberry32(seed) {
+    var a = (seed === undefined ? DEFAULT_SEED : seed) | 0;
+    return function rand() {
+      a = (a + 0x6d2b79f5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // createRng(seed) is the legacy generator (the game's default, unchanged).
+  // createRng(seed, "mulberry32") selects the well-defined one.
+  function createRng(seed, kind) {
+    if (kind === undefined || kind === "legacy") return createLegacyRng(seed);
+    if (kind === "mulberry32") return createMulberry32(seed);
+    throw new Error("unknown generator: " + kind);
   }
 
   function dot(a, b) { var s = 0; for (var i = 0; i < N; i++) s += a[i] * b[i]; return s; }
@@ -240,13 +263,15 @@
     return next;
   }
 
-  // Name of the stored thought a new pattern would crowd (Jaccard > 0.7), as
-  // the game warns when you store one. Returns the last such match, or null.
+  // The stored thought a new pattern would crowd most: the one with the highest
+  // Jaccard overlap, provided it is above 0.7; a tie goes to the earlier thought.
+  // Returns {name, jaccard} or null. (The original game returned the LAST stored
+  // thought above 0.7, not the closest; see CHANGELOG.)
   function closeNeighbour(vec, memory) {
     var warn = null;
     for (var i = 0; i < memory.length; i++) {
       var j = jaccard(vec, memory[i].vec);
-      if (j > 0.7) warn = { name: memory[i].name, jaccard: j };
+      if (j > 0.7 && (warn === null || j > warn.jaccard)) warn = { name: memory[i].name, jaccard: j };
     }
     return warn;
   }
@@ -265,6 +290,7 @@
     G: G, N: N, TAU: TAU, MIN_PROBE_CELLS: MIN_PROBE_CELLS, RECALL_CUTOFF: RECALL_CUTOFF,
     DEFAULT_SEED: DEFAULT_SEED, SCALE: SCALE,
     makeGlyphs: makeGlyphs, rowsToVec: rowsToVec, createRng: createRng,
+    createLegacyRng: createLegacyRng, createMulberry32: createMulberry32,
     dot: dot, norm: norm, cosine: cosine, jaccard: jaccard, countLit: countLit,
     project: project, roundPoints: roundPoints, fragmentCells: fragmentCells,
     scramblePad: scramblePad, pickTarget: pickTarget, closeNeighbour: closeNeighbour,
