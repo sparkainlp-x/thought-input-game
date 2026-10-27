@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata in this file."
+title: "thought-input-game"
+type: software
+version: 0.1.0
+authors:
+  - family-names: Brisson
+    given-names: Jean-François
+    orcid: https://orcid.org/0009-0000-9778-5374
+    affiliation: Spark AI NLP
+license: AGPL-3.0-only
+repository-code: https://github.com/sparkainlp-x/thought-input-game
+url: https://sparkainlp-x.github.io/thought-input-game/
+abstract: >-
+  SYNTHETIC toy and browser game. A drawn 12 x 12 pattern is stored in a small
+  associative memory; a fragment recalls the whole pattern, a refusing gate says
+  no when nothing matches, and recalled patterns are sonified. Classical
+  JavaScript, no dependencies. Not a brain-computer interface, not mind-reading,
+  not an optical hologram.
+keywords:
+  - associative-memory
+  - toy-model
+  - synthetic
+  - browser-game

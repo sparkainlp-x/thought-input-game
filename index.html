@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>Thought-Input Game</title>
+    <style>
+      :root {
+        --bg: #edf1f2;
+        --panel: #ffffff;
+        --panel-2: #e3eaec;
+        --ink: #12222c;
+        --ink-soft: #43565f;
+        --line: #c9d5d9;
+        --accent: #0b7285;
+        --accent-strong: #095a6a;
+        --amber: #a86e0d;
+        --amber-bright: #c98a16;
+        --danger: #b3402f;
+        --good: #1e7a46;
+        --stage-bg: #07121a;
+        --shadow: 0 1px 3px rgba(18, 34, 44, 0.12);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #090e13;
+          --panel: #101922;
+          --panel-2: #16222d;
+          --ink: #e9f2f4;
+          --ink-soft: #a7bcc4;
+          --line: #243646;
+          --accent: #45c3d6;
+          --accent-strong: #6fd3e4;
+          --amber: #f0b64a;
+          --amber-bright: #f5c86e;
+          --danger: #e07a63;
+          --good: #5fce8d;
+          --stage-bg: #050b10;
+          --shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+      }
+      * { box-sizing: border-box; }
+      html { -webkit-text-size-adjust: 100%; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        line-height: 1.5;
+      }
+      button, input { font: inherit; }
+      button { touch-action: manipulation; cursor: pointer; }
+      :focus-visible { outline: 3px solid var(--amber-bright); outline-offset: 2px; border-radius: 6px; }
+
+      .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 18px 44px; }
+
+      header.intro { max-width: 780px; }
+      header.intro h1 {
+        font-size: clamp(1.65rem, 4.5vw, 2.45rem);
+        line-height: 1.12;
+        margin: 0 0 10px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+      }
+      header.intro p { margin: 0; color: var(--ink-soft); font-size: 1.02rem; }
+      header.intro p strong { color: var(--ink); }
+
+      /* HUD */
+      .hud {
+        display: flex; flex-wrap: wrap; gap: 10px;
+        margin-top: 20px; align-items: stretch;
+      }
+      .hud .stat {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+        padding: 8px 14px; box-shadow: var(--shadow); min-width: 104px;
+      }
+      .hud .k { font-size: 0.7rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.06em; }
+      .hud .v { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 1.25rem; font-weight: 600; }
+      .hud .spacer { flex: 1; }
+      .sound-btn {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+        padding: 8px 16px; font-weight: 600; color: var(--ink); box-shadow: var(--shadow);
+        align-self: stretch;
+      }
+      .sound-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-strong); box-shadow: inset 0 0 0 1px var(--accent), var(--shadow); }
+
+      /* Layout */
+      .game {
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+        gap: 18px;
+        margin-top: 16px;
+        align-items: start;
+      }
+      @media (max-width: 900px) { .game { grid-template-columns: 1fr; } }
+      .col { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+      .panel {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+        box-shadow: var(--shadow); padding: 16px;
+      }
+      .panel h2 { font-size: 0.98rem; font-weight: 600; margin: 0 0 4px; }
+      .panel .hint { font-size: 0.84rem; color: var(--ink-soft); margin: 0 0 12px; }
+
+      /* Hologram stage */
+      .stage-panel { padding: 14px 14px 12px; }
+      .stage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 8px; padding: 0 2px; }
+      .stage-head h2 { margin: 0; }
+      .stage-head span { font-size: 0.76rem; color: var(--ink-soft); font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      #holoCanvas {
+        display: block; width: 100%; height: auto; aspect-ratio: 16 / 10;
+        border-radius: 10px; background: var(--stage-bg);
+      }
+      .phase-banner {
+        margin-top: 10px; border-radius: 10px; padding: 10px 14px;
+        background: var(--panel-2); font-size: 0.94rem; min-height: 2.6em;
+        display: flex; align-items: center; gap: 10px;
+      }
+      .phase-banner .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); flex: none; }
+      .phase-banner.good { background: color-mix(in srgb, var(--good) 16%, var(--panel-2)); }
+      .phase-banner.bad { background: color-mix(in srgb, var(--danger) 14%, var(--panel-2)); }
+      .phase-banner strong { font-weight: 700; }
+
+      .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+      .btn {
+        border-radius: 10px; padding: 11px 16px; font-weight: 600; font-size: 0.94rem;
+        border: 1px solid var(--line); background: var(--panel-2); color: var(--ink);
+      }
+      .btn:hover { filter: brightness(1.05); }
+      .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+      .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; flex: 1; min-width: 180px; font-size: 1rem; }
+      @media (prefers-color-scheme: dark) { .btn.primary { color: #06222a; } }
+      .btn.ghost { background: var(--panel); border-color: var(--accent); color: var(--accent-strong); }
+
+      /* Thought pad */
+      .pad-wrap { display: flex; justify-content: center; }
+      .pad {
+        display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px;
+        width: min(100%, 408px); aspect-ratio: 1; touch-action: none; user-select: none;
+      }
+      .cell {
+        border: 1px solid var(--line); border-radius: 5px; background: var(--panel-2);
+        padding: 0; min-height: 0; aspect-ratio: 1;
+      }
+      .cell.on {
+        background: var(--amber-bright); border-color: var(--amber);
+        box-shadow: 0 0 7px color-mix(in srgb, var(--amber-bright) 65%, transparent);
+      }
+      .pad-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+      .pad-tools .btn { padding: 8px 12px; font-size: 0.86rem; }
+      .pad-count { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 0.8rem; color: var(--ink-soft); margin-top: 8px; min-height: 1.2em; }
+
+      /* Membrane verdict */
+      .verdict-big { font-size: 1.3rem; font-weight: 700; margin: 2px 0 2px; }
+      .verdict-big.good { color: var(--good); }
+      .verdict-big.bad { color: var(--danger); }
+      .verdict-big.idle { color: var(--ink-soft); }
+      .meter { height: 10px; border-radius: 999px; background: var(--panel-2); overflow: hidden; border: 1px solid var(--line); margin: 8px 0 4px; }
+      .meter > div { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s ease; }
+      .meter-label { display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--ink-soft); font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .readout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+      .readout-grid .stat { background: var(--panel-2); border-radius: 10px; padding: 8px 12px; }
+      .readout-grid .k { font-size: 0.7rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.05em; }
+      .readout-grid .v { font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-size: 1.05rem; font-weight: 600; }
+      .verdict-msg { font-size: 0.9rem; color: var(--ink-soft); margin: 12px 0 0; }
+      .verdict-msg strong { color: var(--ink); }
+
+      /* Sandbox */
+      .sandbox-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .sandbox-row input[type="text"] {
+        flex: 1; min-width: 150px; border: 1px solid var(--line); border-radius: 10px;
+        padding: 9px 12px; background: var(--panel); color: var(--ink);
+      }
+      .sandbox-row .btn { padding: 9px 13px; font-size: 0.88rem; }
+
+      /* Library */
+      .library { margin-top: 18px; }
+      .lib-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+      .lib-item { text-align: center; width: 76px; }
+      .lib-item canvas { display: block; width: 76px; height: 76px; border-radius: 10px; background: var(--stage-bg); }
+      .lib-item .nm { font-size: 0.76rem; font-weight: 600; margin-top: 5px; }
+      .lib-item .tag { font-size: 0.68rem; color: var(--ink-soft); font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; }
+      .lib-item.locked { opacity: 0.38; }
+
+      /* How it works */
+      .how { margin-top: 26px; }
+      .how > h2 { font-size: 1.3rem; margin: 0 0 6px; }
+      .how > p { color: var(--ink-soft); max-width: 740px; margin: 0 0 14px; }
+      .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+      @media (max-width: 700px) { .steps { grid-template-columns: 1fr; } }
+      .steps li { display: flex; gap: 14px; padding: 13px 0; border-top: 1px solid var(--line); }
+      .steps .num {
+        font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace; font-weight: 600; font-size: 1.05rem;
+        color: var(--accent-strong); flex: none; width: 1.6em;
+      }
+      .steps h3 { margin: 0 0 3px; font-size: 0.98rem; }
+      .steps p { margin: 0; font-size: 0.89rem; color: var(--ink-soft); }
+      .steps p strong { color: var(--ink); }
+
+      footer.limits {
+        margin-top: 26px; border-top: 1px solid var(--line); padding-top: 16px;
+        font-size: 0.84rem; color: var(--ink-soft); max-width: 840px;
+      }
+      footer.limits strong { color: var(--ink); }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header class="intro">
+        <h1>Think it in dots. The membrane projects it back.</h1>
+        <p>
+          A thought-projection game built on our holographic membrane frame. A thought here is a
+          <strong>pattern you draw</strong> — the membrane stores thoughts in one shared matrix, and when you
+          send it a fragment, it <strong>projects the whole thought back</strong> as a floating hologram and as sound.
+          Send it something it can't recognize and the gate <strong>refuses</strong>, honestly, instead of guessing.
+        </p>
+      </header>
+
+      <div class="hud" role="group" aria-label="Game status">
+        <div class="stat"><div class="k">Round</div><div class="v" id="hudRound">1</div></div>
+        <div class="stat"><div class="k">Score</div><div class="v" id="hudScore">0</div></div>
+        <div class="stat"><div class="k">Streak</div><div class="v" id="hudStreak">0</div></div>
+        <div class="stat"><div class="k">Thoughts in memory</div><div class="v" id="hudMemory">3</div></div>
+        <div class="spacer"></div>
+        <button class="sound-btn" id="soundBtn" aria-pressed="true">Sound: on</button>
+      </div>
+
+      <div class="game">
+        <!-- Hologram stage -->
+        <div class="col">
+          <section class="panel stage-panel" aria-label="Holographic projection stage">
+            <div class="stage-head">
+              <h2>Holographic projection</h2>
+              <span id="stageMode">live membrane</span>
+            </div>
+            <canvas id="holoCanvas" width="800" height="500" role="img" aria-label="Floating holographic projection of the membrane pattern above a projector base"></canvas>
+            <div class="phase-banner" id="phaseBanner" role="status">
+              <span class="dot" aria-hidden="true"></span>
+              <span id="phaseText">Starting round 1 — watch the hologram, a thought is arriving…</span>
+            </div>
+            <div class="controls">
+              <button class="btn primary" id="projectBtn">Project my thought →</button>
+              <button class="btn ghost" id="peekBtn">Peek again (−15 pts)</button>
+              <button class="btn" id="nextBtn" hidden>Next round →</button>
+            </div>
+          </section>
+
+          <section class="panel" aria-label="Membrane verdict">
+            <h2>What the membrane says</h2>
+            <p class="hint">The sensor reads your probe, the matrix projects, the gate decides. Numbers are computed live from your drawing.</p>
+            <div class="verdict-big idle" id="verdictBig" aria-live="polite">Waiting for a projection…</div>
+            <div class="meter" aria-hidden="true"><div id="meterFill"></div></div>
+            <div class="meter-label"><span>recall overlap with best-matching thought</span><span id="meterVal">—</span></div>
+            <div class="readout-grid">
+              <div class="stat"><div class="k">Best match</div><div class="v" id="roBest">—</div></div>
+              <div class="stat"><div class="k">Your probe's match</div><div class="v" id="roProbe">—</div></div>
+              <div class="stat"><div class="k">Gate threshold τ</div><div class="v" id="roTau">0.35</div></div>
+              <div class="stat"><div class="k">Cells you lit</div><div class="v" id="roCells">0</div></div>
+            </div>
+            <p class="verdict-msg" id="verdictMsg">Draw on the thought pad, then project. A fragment is enough — completing fragments is what holographic memory is for. But a fragment of the <em>wrong</em> thought completes the wrong thought.</p>
+          </section>
+        </div>
+
+        <!-- Thought pad -->
+        <div class="col">
+          <section class="panel" aria-label="Thought input pad">
+            <h2>Your thought pad</h2>
+            <p class="hint">Tap or drag to light cells. This grid <em>is</em> the input — your thought, translated into a pattern the membrane can hold.</p>
+            <div class="pad-wrap">
+              <div class="pad" id="pad" role="group" aria-label="Drawing grid, 12 by 12 cells"></div>
+            </div>
+            <div class="pad-count" id="padCount">0 cells lit</div>
+            <div class="pad-tools">
+              <button class="btn" id="clearBtn">Clear</button>
+              <button class="btn" id="fragmentBtn">Fragment assist (−10 pts)</button>
+              <button class="btn" id="hearPadBtn">▶ Hear my drawing</button>
+            </div>
+          </section>
+
+          <section class="panel" aria-label="Teach the membrane your own thought">
+            <h2>Teach it a thought of your own</h2>
+            <p class="hint">Draw anything, name it, and store it in the same matrix. Then scramble it and watch the membrane try to project <em>your</em> thought back. Stored thoughts also join the game — as possible crosstalk.</p>
+            <div class="sandbox-row">
+              <input type="text" id="customName" maxlength="24" placeholder="Name your thought…" aria-label="Name for your custom thought" />
+              <button class="btn" id="storeBtn">Store in membrane</button>
+            </div>
+            <div class="sandbox-row">
+              <button class="btn" id="scrambleBtn">Scramble my pad (flip 25%)</button>
+              <button class="btn" id="freeProjectBtn">Project — free mode</button>
+            </div>
+            <p class="verdict-msg" id="sandboxMsg">Free mode projects without scoring: handy for testing your own stored thoughts.</p>
+          </section>
+        </div>
+      </div>
+
+      <!-- Library -->
+      <section class="panel library" aria-label="Thought library">
+        <h2>Thought library — what the membrane holds</h2>
+        <p class="hint">Every pattern lives in the same shared matrix, superimposed. That is why similar thoughts can interfere — crosstalk is the price of holographic storage.</p>
+        <div class="lib-grid" id="libGrid"></div>
+      </section>
+
+      <!-- How it works -->
+      <section class="how" aria-label="How the game works">
+        <h2>How a drawn thought becomes a hologram and a sound</h2>
+        <p>
+          The same four steps as our membrane toys — heart, brain, propulsion ring — now driven by
+          <em>your</em> input instead of a built-in signal.
+        </p>
+        <ol class="steps">
+          <li>
+            <span class="num">01</span>
+            <div>
+              <h3>You think in a pattern</h3>
+              <p>No mind-reading: a “thought” enters as a <strong>12 × 12 pattern of lit cells</strong> that you draw. The translation from idea to pattern is yours — that translation is the input.</p>
+            </div>
+          </li>
+          <li>
+            <span class="num">02</span>
+            <div>
+              <h3>The matrix remembers by superposition</h3>
+              <p>Stored thoughts are added together into <strong>one shared field</strong>, like exposures on one holographic plate. Nothing sits in its own slot — which is why a fragment can rebuild a whole, and why wholes can blur into each other.</p>
+            </div>
+          </li>
+          <li>
+            <span class="num">03</span>
+            <div>
+              <h3>Projection completes — or the gate refuses</h3>
+              <p>Your probe is compared against every stored thought at once. The strongest match is <strong>projected back whole</strong>. If nothing reaches the threshold τ, the gate refuses rather than inventing an answer.</p>
+            </div>
+          </li>
+          <li>
+            <span class="num">04</span>
+            <div>
+              <h3>You hear the thought</h3>
+              <p>The recalled pattern is <strong>sonified row by row</strong>: each lit cell plays a note set by its column, so a shape you can see becomes a melody you can hear. Same pattern, two senses — vision and sound.</p>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <footer class="limits">
+        <strong>Honest limits.</strong> This game reads no minds and no brains: “thought input” means a pattern
+        you deliberately draw. “Holographic” is a metaphor for the memory model: your probe is compared with every
+        stored pattern at once and the matches are combined into one weighted field, so a fragment can recall a whole.
+        The code keeps a list of patterns; it is not a trained weight matrix, and the projection is drawn as a
+        hologram-style picture. It is not an optical hologram, not a brain–computer interface, and not a medical
+        anything. The sounds are a sonification mapping we chose (column → pitch, row → time). Everything runs in
+        this tab; nothing you draw is saved or sent anywhere, and the page loads no outside fonts or scripts.
+      </footer>
+    </div>
+
+    <script src="src/membrane.js"></script>
+    <script src="src/game.js"></script>
+  </body>
+</html>

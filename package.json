@@ -1,0 +1,21 @@
+{
+  "name": "thought-input-game",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SYNTHETIC toy: draw a pattern, a shared-matrix memory recalls the whole from a fragment or a refusing gate says no. A browser game; not a brain-computer interface.",
+  "license": "AGPL-3.0-only",
+  "author": "Jean-François Brisson (Spark AI NLP)",
+  "repository": { "type": "git", "url": "https://github.com/sparkainlp-x/thought-input-game.git" },
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check:text": "node scripts/check_text.js",
+    "behaviour": "node scripts/behaviour.js",
+    "behaviour:check": "node scripts/behaviour.js --check",
+    "e2e": "node --test e2e/*.test.js",
+    "ci": "npm test && npm run check:text && npm run behaviour:check"
+  },
+  "devDependencies": {
+    "playwright": "1.49.1"
+  }
+}

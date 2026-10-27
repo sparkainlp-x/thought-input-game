@@ -1,0 +1,725 @@
+{
+ "trials_per_thought": 200,
+ "sizes": [
+  3,
+  4,
+  5,
+  6,
+  7,
+  8
+ ],
+ "glyphs": [
+  {
+   "name": "Heart",
+   "cells": 70
+  },
+  {
+   "name": "Star",
+   "cells": 56
+  },
+  {
+   "name": "Tree",
+   "cells": 54
+  },
+  {
+   "name": "Moon",
+   "cells": 66
+  },
+  {
+   "name": "Eye",
+   "cells": 68
+  },
+  {
+   "name": "Arrow",
+   "cells": 40
+  },
+  {
+   "name": "Spiral",
+   "cells": 65
+  },
+  {
+   "name": "Orbit",
+   "cells": 34
+  }
+ ],
+ "fragment": {
+  "3": [
+   {
+    "fraction": 0.1,
+    "correct": 0,
+    "exact": 0,
+    "mean_jaccard": null,
+    "crosstalk": 0.008333333333333333,
+    "refused": 0.9916666666666667
+   },
+   {
+    "fraction": 0.15,
+    "correct": 0.9533333333333334,
+    "exact": 0.09666666666666666,
+    "mean_jaccard": 0.8894349104687596,
+    "crosstalk": 0.04666666666666667,
+    "refused": 0
+   },
+   {
+    "fraction": 0.2,
+    "correct": 0.9883333333333333,
+    "exact": 0.04666666666666667,
+    "mean_jaccard": 0.8830452850361107,
+    "crosstalk": 0.011666666666666667,
+    "refused": 0
+   },
+   {
+    "fraction": 0.3,
+    "correct": 1,
+    "exact": 0.02666666666666667,
+    "mean_jaccard": 0.8829991054754731,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.4,
+    "correct": 1,
+    "exact": 0.013333333333333334,
+    "mean_jaccard": 0.8818173644561214,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.5,
+    "correct": 1,
+    "exact": 0.0033333333333333335,
+    "mean_jaccard": 0.8813906424852818,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.75,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.8811345464571271,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 1,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.8811345464571271,
+    "crosstalk": 0,
+    "refused": 0
+   }
+  ],
+  "4": [
+   {
+    "fraction": 0.1,
+    "correct": 0,
+    "exact": 0,
+    "mean_jaccard": null,
+    "crosstalk": 0.00875,
+    "refused": 0.99125
+   },
+   {
+    "fraction": 0.15,
+    "correct": 0.97375,
+    "exact": 0.12875,
+    "mean_jaccard": 0.8637452874499442,
+    "crosstalk": 0.02625,
+    "refused": 0
+   },
+   {
+    "fraction": 0.2,
+    "correct": 0.99125,
+    "exact": 0.14125,
+    "mean_jaccard": 0.8711803122831979,
+    "crosstalk": 0.00875,
+    "refused": 0
+   },
+   {
+    "fraction": 0.3,
+    "correct": 0.99875,
+    "exact": 0.125,
+    "mean_jaccard": 0.8727313935769554,
+    "crosstalk": 0.00125,
+    "refused": 0
+   },
+   {
+    "fraction": 0.4,
+    "correct": 1,
+    "exact": 0.1375,
+    "mean_jaccard": 0.8779044369223691,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.5,
+    "correct": 1,
+    "exact": 0.13,
+    "mean_jaccard": 0.8778405644595731,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.75,
+    "correct": 1,
+    "exact": 0.16375,
+    "mean_jaccard": 0.8878974176519244,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 1,
+    "correct": 1,
+    "exact": 0.25,
+    "mean_jaccard": 0.9108509098428453,
+    "crosstalk": 0,
+    "refused": 0
+   }
+  ],
+  "5": [
+   {
+    "fraction": 0.1,
+    "correct": 0,
+    "exact": 0,
+    "mean_jaccard": null,
+    "crosstalk": 0.013,
+    "refused": 0.987
+   },
+   {
+    "fraction": 0.15,
+    "correct": 0.981,
+    "exact": 0.051,
+    "mean_jaccard": 0.8057330305075456,
+    "crosstalk": 0.019,
+    "refused": 0
+   },
+   {
+    "fraction": 0.2,
+    "correct": 0.993,
+    "exact": 0.038,
+    "mean_jaccard": 0.8098120935597951,
+    "crosstalk": 0.007,
+    "refused": 0
+   },
+   {
+    "fraction": 0.3,
+    "correct": 1,
+    "exact": 0.026,
+    "mean_jaccard": 0.8097919942646575,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.4,
+    "correct": 1,
+    "exact": 0.013,
+    "mean_jaccard": 0.811830909405495,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.5,
+    "correct": 1,
+    "exact": 0.007,
+    "mean_jaccard": 0.8141418044217273,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 0.75,
+    "correct": 1,
+    "exact": 0.002,
+    "mean_jaccard": 0.8148846240779336,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 1,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.8117881833900833,
+    "crosstalk": 0,
+    "refused": 0
+   }
+  ],
+  "6": [
+   {
+    "fraction": 0.1,
+    "correct": 0,
+    "exact": 0,
+    "mean_jaccard": null,
+    "crosstalk": 0.051666666666666666,
+    "refused": 0.9483333333333334
+   },
+   {
+    "fraction": 0.15,
+    "correct": 0.9075,
+    "exact": 0.021666666666666667,
+    "mean_jaccard": 0.786612375306274,
+    "crosstalk": 0.0925,
+    "refused": 0
+   },
+   {
+    "fraction": 0.2,
+    "correct": 0.9708333333333333,
+    "exact": 0.018333333333333333,
+    "mean_jaccard": 0.7939683576012886,
+    "crosstalk": 0.029166666666666667,
+    "refused": 0
+   },
+   {
+    "fraction": 0.3,
+    "correct": 0.9825,
+    "exact": 0.015,
+    "mean_jaccard": 0.7968848339692088,
+    "crosstalk": 0.0175,
+    "refused": 0
+   },
+   {
+    "fraction": 0.4,
+    "correct": 0.9875,
+    "exact": 0.010833333333333334,
+    "mean_jaccard": 0.7968752777606157,
+    "crosstalk": 0.0125,
+    "refused": 0
+   },
+   {
+    "fraction": 0.5,
+    "correct": 0.9983333333333333,
+    "exact": 0.0008333333333333334,
+    "mean_jaccard": 0.7953031364610897,
+    "crosstalk": 0.0016666666666666668,
+    "refused": 0
+   },
+   {
+    "fraction": 0.75,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.7919357644659243,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 1,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.7960126529540579,
+    "crosstalk": 0,
+    "refused": 0
+   }
+  ],
+  "7": [
+   {
+    "fraction": 0.1,
+    "correct": 0,
+    "exact": 0,
+    "mean_jaccard": null,
+    "crosstalk": 0.055,
+    "refused": 0.945
+   },
+   {
+    "fraction": 0.15,
+    "correct": 0.915,
+    "exact": 0.007857142857142858,
+    "mean_jaccard": 0.7665684483697371,
+    "crosstalk": 0.085,
+    "refused": 0
+   },
+   {
+    "fraction": 0.2,
+    "correct": 0.9707142857142858,
+    "exact": 0.0064285714285714285,
+    "mean_jaccard": 0.7743784897075825,
+    "crosstalk": 0.029285714285714286,
+    "refused": 0
+   },
+   {
+    "fraction": 0.3,
+    "correct": 0.9771428571428571,
+    "exact": 0.0007142857142857143,
+    "mean_jaccard": 0.781824157314162,
+    "crosstalk": 0.022857142857142857,
+    "refused": 0
+   },
+   {
+    "fraction": 0.4,
+    "correct": 0.99,
+    "exact": 0.0007142857142857143,
+    "mean_jaccard": 0.786393602835356,
+    "crosstalk": 0.01,
+    "refused": 0
+   },
+   {
+    "fraction": 0.5,
+    "correct": 0.9971428571428571,
+    "exact": 0,
+    "mean_jaccard": 0.790753522610111,
+    "crosstalk": 0.002857142857142857,
+    "refused": 0
+   },
+   {
+    "fraction": 0.75,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.7948904420490553,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 1,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.80006867411283,
+    "crosstalk": 0,
+    "refused": 0
+   }
+  ],
+  "8": [
+   {
+    "fraction": 0.1,
+    "correct": 0,
+    "exact": 0,
+    "mean_jaccard": null,
+    "crosstalk": 0.03875,
+    "refused": 0.96125
+   },
+   {
+    "fraction": 0.15,
+    "correct": 0.934375,
+    "exact": 0.026875,
+    "mean_jaccard": 0.7591851657075005,
+    "crosstalk": 0.065625,
+    "refused": 0
+   },
+   {
+    "fraction": 0.2,
+    "correct": 0.978125,
+    "exact": 0.024375,
+    "mean_jaccard": 0.7695784645620639,
+    "crosstalk": 0.021875,
+    "refused": 0
+   },
+   {
+    "fraction": 0.3,
+    "correct": 0.984375,
+    "exact": 0.020625,
+    "mean_jaccard": 0.7785775864759257,
+    "crosstalk": 0.015625,
+    "refused": 0
+   },
+   {
+    "fraction": 0.4,
+    "correct": 0.993125,
+    "exact": 0.019375,
+    "mean_jaccard": 0.7866376902092809,
+    "crosstalk": 0.006875,
+    "refused": 0
+   },
+   {
+    "fraction": 0.5,
+    "correct": 0.998125,
+    "exact": 0.01125,
+    "mean_jaccard": 0.7913622258271241,
+    "crosstalk": 0.001875,
+    "refused": 0
+   },
+   {
+    "fraction": 0.75,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.7979739275466904,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "fraction": 1,
+    "correct": 1,
+    "exact": 0,
+    "mean_jaccard": 0.8004271045410465,
+    "crosstalk": 0,
+    "refused": 0
+   }
+  ]
+ },
+ "flip": {
+  "3": [
+   {
+    "p": 0,
+    "correct": 1,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "p": 0.1,
+    "correct": 1,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "p": 0.25,
+    "correct": 0.9983333333333333,
+    "crosstalk": 0.0016666666666666668,
+    "refused": 0
+   },
+   {
+    "p": 0.4,
+    "correct": 0.7116666666666667,
+    "crosstalk": 0.28833333333333333,
+    "refused": 0
+   },
+   {
+    "p": 0.5,
+    "correct": 0.3516666666666667,
+    "crosstalk": 0.6483333333333333,
+    "refused": 0
+   }
+  ],
+  "8": [
+   {
+    "p": 0,
+    "correct": 1,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "p": 0.1,
+    "correct": 1,
+    "crosstalk": 0,
+    "refused": 0
+   },
+   {
+    "p": 0.25,
+    "correct": 0.969375,
+    "crosstalk": 0.030625,
+    "refused": 0
+   },
+   {
+    "p": 0.4,
+    "correct": 0.563125,
+    "crosstalk": 0.436875,
+    "refused": 0
+   },
+   {
+    "p": 0.5,
+    "correct": 0.129375,
+    "crosstalk": 0.870625,
+    "refused": 0
+   }
+  ]
+ },
+ "scatter": {
+  "3": [
+   {
+    "density": 0.05,
+    "refused": 0.9985,
+    "max_best_cosine": 0.3803194146278325,
+    "n": 2000
+   },
+   {
+    "density": 0.1,
+    "refused": 0.9695,
+    "max_best_cosine": 0.4422689813358516,
+    "n": 2000
+   },
+   {
+    "density": 0.2,
+    "refused": 0.655,
+    "max_best_cosine": 0.4912359324324121,
+    "n": 2000
+   },
+   {
+    "density": 0.3,
+    "refused": 0.2015,
+    "max_best_cosine": 0.5815485859014491,
+    "n": 2000
+   },
+   {
+    "density": 0.5,
+    "refused": 0.001,
+    "max_best_cosine": 0.6574873597112261,
+    "n": 2000
+   }
+  ],
+  "8": [
+   {
+    "density": 0.05,
+    "refused": 0.9915,
+    "max_best_cosine": 0.4244373438135827,
+    "n": 2000
+   },
+   {
+    "density": 0.1,
+    "refused": 0.921,
+    "max_best_cosine": 0.4679096001787032,
+    "n": 2000
+   },
+   {
+    "density": 0.2,
+    "refused": 0.4155,
+    "max_best_cosine": 0.51425947722658,
+    "n": 2000
+   },
+   {
+    "density": 0.3,
+    "refused": 0.0465,
+    "max_best_cosine": 0.5549550550469579,
+    "n": 2000
+   },
+   {
+    "density": 0.5,
+    "refused": 0,
+    "max_best_cosine": 0.6495983543529201,
+    "n": 2000
+   }
+  ]
+ },
+ "pairs_top": [
+  {
+   "a": "Tree",
+   "b": "Arrow",
+   "cosine": 0.8606629658238704,
+   "jaccard": 0.7407407407407407
+  },
+  {
+   "a": "Star",
+   "b": "Tree",
+   "cosine": 0.7637626158259733,
+   "jaccard": 0.6176470588235294
+  },
+  {
+   "a": "Heart",
+   "b": "Eye",
+   "cosine": 0.7247137945655605,
+   "jaccard": 0.5681818181818182
+  },
+  {
+   "a": "Heart",
+   "b": "Tree",
+   "cosine": 0.6831300510639732,
+   "jaccard": 0.5121951219512195
+  },
+  {
+   "a": "Star",
+   "b": "Arrow",
+   "cosine": 0.6761234037828132,
+   "jaccard": 0.5
+  }
+ ],
+ "pairs_min_cosine": {
+  "a": "Arrow",
+  "b": "Orbit",
+  "cosine": 0.1626978433639921,
+  "jaccard": 0.08823529411764706
+ },
+ "duplicate": [
+  {
+   "flipped_cells": 0,
+   "jaccard": 1,
+   "warns": true,
+   "copy_recalled": 0,
+   "heart_recalled_instead": 1,
+   "other_or_refused": 0
+  },
+  {
+   "flipped_cells": 2,
+   "jaccard": 0.971830985915493,
+   "warns": true,
+   "copy_recalled": 0.5,
+   "heart_recalled_instead": 0.5,
+   "other_or_refused": 0
+  },
+  {
+   "flipped_cells": 5,
+   "jaccard": 0.9315068493150684,
+   "warns": true,
+   "copy_recalled": 0.88,
+   "heart_recalled_instead": 0.12,
+   "other_or_refused": 0
+  },
+  {
+   "flipped_cells": 10,
+   "jaccard": 0.868421052631579,
+   "warns": true,
+   "copy_recalled": 0.985,
+   "heart_recalled_instead": 0.015,
+   "other_or_refused": 0
+  },
+  {
+   "flipped_cells": 20,
+   "jaccard": 0.7619047619047619,
+   "warns": true,
+   "copy_recalled": 1,
+   "heart_recalled_instead": 0,
+   "other_or_refused": 0
+  },
+  {
+   "flipped_cells": 40,
+   "jaccard": 0.5789473684210527,
+   "warns": false,
+   "copy_recalled": 1,
+   "heart_recalled_instead": 0,
+   "other_or_refused": 0
+  }
+ ],
+ "rng": {
+  "lead_in": 2423,
+  "period": 10466,
+  "distinct_states": 12889,
+  "bins12_of_100000": [
+   8770,
+   8364,
+   8654,
+   8216,
+   8473,
+   8709,
+   7976,
+   7918,
+   8146,
+   8229,
+   8109,
+   8436
+  ],
+  "first_values": [
+   0.943746,
+   0.500528,
+   0.561789
+  ]
+ },
+ "assist": [
+  {
+   "memory": 3,
+   "correct": 1,
+   "crosstalk": 0,
+   "refused": 0
+  },
+  {
+   "memory": 4,
+   "correct": 1,
+   "crosstalk": 0,
+   "refused": 0
+  },
+  {
+   "memory": 5,
+   "correct": 1,
+   "crosstalk": 0,
+   "refused": 0
+  },
+  {
+   "memory": 6,
+   "correct": 0.9983333333333333,
+   "crosstalk": 0.0016666666666666668,
+   "refused": 0
+  },
+  {
+   "memory": 7,
+   "correct": 0.9985714285714286,
+   "crosstalk": 0.0014285714285714286,
+   "refused": 0
+  },
+  {
+   "memory": 8,
+   "correct": 0.995,
+   "crosstalk": 0.005,
+   "refused": 0
+  }
+ ]
+}
