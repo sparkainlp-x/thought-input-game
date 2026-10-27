@@ -16,7 +16,8 @@ abstract: >-
   associative memory; a fragment recalls the whole pattern, a refusing gate says
   no when nothing matches, and recalled patterns are sonified. Classical
   JavaScript, no dependencies. Not a brain-computer interface, not mind-reading,
-  not an optical hologram.
+  not an optical hologram. Built with AI assistance from Grok Bot; the author is
+  responsible for the content.
 keywords:
   - associative-memory
   - toy-model

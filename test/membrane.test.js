@@ -259,15 +259,40 @@ test("crosstalk: a stored near-copy takes over; an identical copy loses ties to 
   assert.equal(fromDup.best, 3, "the exact near-copy pattern matches itself best");
 });
 
-test("crosstalk: storing warns when a new pattern has Jaccard > 0.7 with a stored one (the last such match is reported)", () => {
+test("crosstalk: storing warns when a new pattern has Jaccard > 0.7 with a stored one", () => {
   const memory = mem(3);
   assert.equal(M.closeNeighbour(memory[0].vec, memory).name, "Heart");
   const w = M.closeNeighbour(memory[0].vec, memory); near(w.jaccard, 1);
   assert.equal(M.closeNeighbour(vecOf([0, 1, 2, 3, 4, 5, 6, 7]), memory), null);
-  // Tree/Arrow have Jaccard 0.74, so with both stored a Tree copy matches both (1.00 and 0.74): the LAST one is reported.
-  // (The game keeps this behaviour; it is noted in the README.)
-  const m = [M.makeGlyphs()[2], M.makeGlyphs()[5]];
-  assert.equal(M.closeNeighbour(m[0].vec, m).name, "Arrow");
+  assert.equal(M.closeNeighbour(memory[0].vec, []), null);
+});
+
+test("closeNeighbour reports the CLOSEST stored thought, not the last one above 0.7 (fix; see CHANGELOG)", () => {
+  // Tree/Arrow have Jaccard 0.74. With Tree then Arrow stored, a Tree copy matches Tree 1.00 and Arrow 0.74:
+  // the original game reported the last one (Arrow); the closest is Tree, whichever order they are stored in.
+  const g = M.makeGlyphs();
+  const treeFirst = [g[2], g[5]], arrowFirst = [g[5], g[2]];
+  assert.equal(M.closeNeighbour(g[2].vec, treeFirst).name, "Tree");
+  assert.equal(M.closeNeighbour(g[2].vec, arrowFirst).name, "Tree");
+  near(M.closeNeighbour(g[2].vec, treeFirst).jaccard, 1);
+  // An Arrow copy: closest is Arrow in both orders.
+  assert.equal(M.closeNeighbour(g[5].vec, treeFirst).name, "Arrow");
+  assert.equal(M.closeNeighbour(g[5].vec, arrowFirst).name, "Arrow");
+  // Ties go to the earlier thought.
+  const twin = [{ name: "A", vec: g[0].vec }, { name: "B", vec: g[0].vec }];
+  assert.equal(M.closeNeighbour(g[0].vec, twin).name, "A");
+});
+
+test("closeNeighbour agrees with the original whenever at most one stored thought is above 0.7", () => {
+  // For the eight built-in thoughts only Tree/Arrow (0.74) are that close, so for every
+  // built-in pattern stored in the 8-thought memory the result equals the original's last-match rule.
+  const g = M.makeGlyphs();
+  const originalRule = (vec, memory) => { let w = null; for (const m of memory) { const j = M.jaccard(vec, m.vec); if (j > 0.7) w = { name: m.name, jaccard: j }; } return w; };
+  for (const x of g) {
+    const a = M.closeNeighbour(x.vec, g), b = originalRule(x.vec, g);
+    if (x.name === "Tree" || x.name === "Arrow") continue; // two thoughts above 0.7 (self and the other): original reports the later
+    assert.deepEqual(a, b, x.name);
+  }
 });
 
 // ---- Determinism ----
@@ -361,4 +386,46 @@ test("sonification: one note per lit cell, silent rows add nothing, default step
 test("sonification: two shapes that differ only in a column play different pitches", () => {
   const a = M.patternToNotes(vecOf([0])), b = M.patternToNotes(vecOf([1]));
   assert.notEqual(a[0].freq, b[0].freq); assert.equal(a[0].start, b[0].start);
+});
+
+// ---- Generators ----
+test("createRng(seed) is the legacy generator; createRng(seed, 'legacy') is the same; unknown kind throws", () => {
+  const a = M.createRng(77), b = M.createLegacyRng(77), c = M.createRng(77, "legacy");
+  for (let i = 0; i < 50; i++) { const x = a(); assert.equal(x, b()); assert.equal(x, c()); }
+  assert.throws(() => M.createRng(1, "nope"), /unknown generator/);
+});
+
+test("mulberry32 matches an independent BigInt implementation and the local reference", () => {
+  const M32 = 0xffffffffn;
+  const imul = (x, y) => (x * y) & M32;
+  function ref(seed) {
+    let a = BigInt(seed) & M32;
+    return () => {
+      a = (a + 0x6d2b79f5n) & M32;
+      let t = imul(a ^ (a >> 15n), 1n | a);
+      t = ((t + imul(t ^ (t >> 7n), 61n | t)) & M32) ^ t;
+      return Number((t ^ (t >> 14n)) & M32) / 4294967296;
+    };
+  }
+  for (const seed of [0, 1, 42, 1234567, 0xffffffff]) {
+    const m = M.createMulberry32(seed), r = ref(seed), l = mulberry32(seed), k = M.createRng(seed, "mulberry32");
+    for (let i = 0; i < 2000; i++) { const x = r(); assert.equal(m(), x); assert.equal(l(), x); assert.equal(k(), x); }
+  }
+});
+
+test("mulberry32: values in [0,1), seed-determined, no short cycle, near-uniform", () => {
+  const r = M.createMulberry32(M.DEFAULT_SEED);
+  const seen = new Set(); const bins = new Array(12).fill(0); const n = 120000;
+  for (let i = 0; i < n; i++) { const x = r(); assert.ok(x >= 0 && x < 1); seen.add(x); bins[Math.floor(x * 12)]++; }
+  assert.ok(seen.size > n - 5, "no repeats within the 10466-draw legacy cycle length or beyond: " + seen.size);
+  const exp = n / 12; let chi = 0; for (const b of bins) chi += (b - exp) * (b - exp) / exp;
+  assert.ok(chi < 31.26, "chi-square over 12 bins (11 dof, p=0.001) = " + chi);
+  assert.notEqual(M.createMulberry32(1)(), M.createMulberry32(2)());
+  const a = M.createMulberry32(5), b = M.createMulberry32(5);
+  for (let i = 0; i < 100; i++) assert.equal(a(), b());
+});
+
+test("the game still uses the legacy generator (play unchanged)", () => {
+  const src = fs.readFileSync(path.join(__dirname, "..", "src", "game.js"), "utf8");
+  assert.match(src, /var rand = Membrane\.createRng\(\);/);
 });

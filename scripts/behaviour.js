@@ -11,18 +11,13 @@ const M = require("../src/membrane.js");
 
 const OUT_MD = path.join(__dirname, "..", "docs", "behaviour.md");
 const OUT_JSON = path.join(__dirname, "..", "docs", "behaviour.json");
-const TRIALS = 200;
+const TRIALS = 1000;
+const SCATTER_N = 5000;
 
-// Sampling uses a separate, well-mixed generator (mulberry32). The game's own
-// generator has a short cycle (see section 6), which would bias a Monte Carlo.
-function mulberry32(a) {
-  return function () {
-    a |= 0; a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+// Sampling uses mulberry32 (M.createMulberry32), a well-defined 32-bit generator.
+// The game's own legacy generator has a short cycle (see section 6), which
+// would bias a Monte Carlo; section 6b compares the two on the same tables.
+const mulberry32 = M.createMulberry32;
 const pct = (x) => (100 * x).toFixed(1) + "%";
 const f2 = (x) => x.toFixed(2);
 
@@ -62,7 +57,7 @@ const rate = (t, k) => t[k] / t.n;
 const correct = (t) => (t.exact + t.recalled) / t.n;
 
 function run() {
-  const out = { trials_per_thought: TRIALS, sizes: [3, 4, 5, 6, 7, 8] };
+  const out = { trials_per_thought: TRIALS, scatter_n: SCATTER_N, sizes: [3, 4, 5, 6, 7, 8] };
   const glyphs = M.makeGlyphs();
 
   // 1. Glyphs
@@ -89,13 +84,13 @@ function run() {
   }
 
   // 4. Gate on unknown patterns: random scatter at a given density
-  const dens = [0.05, 0.1, 0.2, 0.3, 0.5];
+  const dens = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7];
   out.scatter = {};
   for (const k of [3, 8]) {
     const mem = memoryOf(k);
     out.scatter[k] = dens.map((d) => {
       const rnd = mulberry32(9000 + k * 100 + Math.round(d * 100));
-      let refused = 0; const n = 2000; let maxCos = 0;
+      let refused = 0; const n = SCATTER_N; let maxCos = 0;
       for (let i = 0; i < n; i++) {
         const v = new Float32Array(M.N);
         for (let c = 0; c < M.N; c++) v[c] = rnd() < d ? 1 : 0;
@@ -151,17 +146,55 @@ function run() {
   out.rng = { lead_in: leadIn, period, distinct_states: first.size, bins12_of_100000: bins,
     first_values: (() => { const r = M.createRng(); return [r(), r(), r()].map((x) => Number(x.toFixed(6))); })() };
 
-  // 7. Fragment assist exactly as the game does it (keeps half, at least 4)
-  out.assist = out.sizes.map((k) => {
-    const mem = memoryOf(k); const rnd = M.createRng(424242 + k);
-    const t = { correct: 0, crosstalk: 0, refused: 0, n: 0 };
-    for (let g = 0; g < k; g++) for (let r = 0; r < 100; r++) {
-      const v = new Float32Array(M.N); M.fragmentCells(mem[g].vec, rnd).forEach((c) => { v[c] = 1; });
-      const res = M.project(v, mem);
-      if (!res.accepted) t.refused++; else if (res.best === g) t.correct++; else t.crosstalk++;
-      t.n++;
+  // 6b. Same tables, sampled with the legacy game generator vs mulberry32
+  out.rngcompare = [];
+  for (const k of [3, 8]) for (const fr of [0.15, 0.2, 0.5]) {
+    const row = { memory: k, fraction: fr };
+    for (const kind of ["mulberry32", "legacy"]) {
+      const t = tally(memoryOf(k), (v, rnd) => randomSubset(v, fr, rnd), M.createRng(1000 + k * 100 + Math.round(fr * 100), kind), TRIALS);
+      row[kind] = { correct: correct(t), crosstalk: rate(t, "crosstalk"), refused: rate(t, "refused") };
     }
-    return { memory: k, correct: t.correct / t.n, crosstalk: t.crosstalk / t.n, refused: t.refused / t.n };
+    out.rngcompare.push(row);
+  }
+
+  // 7. Fragment assist exactly as the game does it (keeps half, at least 4)
+  const ASSIST = 1000;
+  out.assist_n = ASSIST;
+  out.assist = out.sizes.map((k) => {
+    const mem = memoryOf(k);
+    const row = { memory: k };
+    for (const kind of ["legacy", "mulberry32"]) {
+      const rnd = M.createRng(424242 + k, kind);
+      const t = { correct: 0, crosstalk: 0, refused: 0, n: 0 };
+      for (let g = 0; g < k; g++) for (let r = 0; r < ASSIST; r++) {
+        const v = new Float32Array(M.N); M.fragmentCells(mem[g].vec, rnd).forEach((c) => { v[c] = 1; });
+        const res = M.project(v, mem);
+        if (!res.accepted) t.refused++; else if (res.best === g) t.correct++; else t.crosstalk++;
+        t.n++;
+      }
+      row[kind] = { correct: t.correct / t.n, crosstalk: t.crosstalk / t.n, refused: t.refused / t.n };
+    }
+    return row;
+  });
+
+  // 8. Store warning: closest neighbour (fixed) vs last neighbour (original game)
+  // A built-in thought with m random cells flipped is stored into the 8-thought memory.
+  const mem8 = M.makeGlyphs();
+  const lastRule = (vec, memory) => { let w = null; memory.forEach((x) => { if (M.jaccard(vec, x.vec) > 0.7) w = x.name; }); return w; };
+  out.warning = [0, 2, 5, 10, 20].map((m) => {
+    const rnd = mulberry32(60000 + m);
+    let warned = 0, two = 0, differ = 0, n = 0;
+    for (let g = 0; g < mem8.length; g++) for (let r = 0; r < 500; r++) {
+      const v = Float32Array.from(mem8[g].vec); const idx = [];
+      for (let i = 0; i < M.N; i++) idx.push(i);
+      for (let j = idx.length - 1; j > 0; j--) { const q = Math.floor(rnd() * (j + 1)); [idx[j], idx[q]] = [idx[q], idx[j]]; }
+      for (let q = 0; q < m; q++) v[idx[q]] = v[idx[q]] > 0.5 ? 0 : 1;
+      let above = 0; mem8.forEach((x) => { if (M.jaccard(v, x.vec) > 0.7) above++; });
+      const fixedW = M.closeNeighbour(v, mem8); const lastW = lastRule(v, mem8);
+      n++; if (fixedW) warned++; if (above > 1) two++;
+      if ((fixedW && fixedW.name) !== lastW) differ++;
+    }
+    return { flipped_cells: m, warned: warned / n, two_or_more_close: two / n, name_differs: differ / n };
   });
   return out;
 }
@@ -176,7 +209,7 @@ function render(o) {
   L.push("");
   L.push("Generated by `node scripts/behaviour.js` from `src/membrane.js`. Do not edit by hand: `npm run behaviour:check` fails if this file is stale.");
   L.push("");
-  L.push("**SYNTHETIC toy.** Every number below comes from drawn 12 x 12 patterns (eight fixed glyphs, plus generated fragments, flips and random scatter) run through the game's own `project` function. The numbers describe this toy memory on these patterns. They are not a measurement of any brain, signal, device or optical hologram, and they do not predict how a person plays. Sampling uses a seeded generator, so the file is reproducible; " + o.trials_per_thought + " random probes per stored thought per cell of each table (standard error of a rate near 50% is about 1 point for 8 thoughts, 2 points for 3).");
+  L.push("**SYNTHETIC toy.** Every number below comes from drawn 12 x 12 patterns (eight fixed glyphs, plus generated fragments, flips and random scatter) run through the game's own `project` function. The numbers describe this toy memory on these patterns. They are not a measurement of any brain, signal, device or optical hologram, and they do not predict how a person plays. Sampling uses a seeded generator, so the file is reproducible; " + o.trials_per_thought + " random probes per stored thought per cell of each table (standard error of a rate near 50% is about 0.6 points for 8 thoughts and 0.9 points for 3).");
   L.push("");
   L.push("Memory order is the game's: Heart, Star, Tree are stored first; Moon, Eye, Arrow, Spiral, Orbit are added one per won round. \"N thoughts\" below means the first N of those. `exact` means the recalled pattern equals the stored one cell for cell; `recalled` is the right thought with some cells different; `crosstalk` is the gate accepting a different thought; `refused` is the gate saying no (cosine below tau = 0.35, or fewer than 3 lit cells).");
   L.push("");
@@ -217,7 +250,7 @@ function render(o) {
   L.push("");
   L.push("## 4. The gate on unknown patterns");
   L.push("");
-  L.push("Random scatter: every cell lit independently with the given density. 2000 probes per row. A refusal is the right answer here, because no stored thought is meant.");
+  L.push("Random scatter: every cell lit independently with the given density. " + o.scatter_n + " probes per row. A refusal is the right answer here, because no stored thought is meant.");
   L.push("");
   L.push(table(["thoughts stored", "density", "refused", "highest best-match cosine seen"],
     Object.keys(o.scatter).flatMap((k) => o.scatter[k].map((x) => [k, String(x.density), pct(x.refused), f2(x.max_best_cosine)]))));
@@ -239,19 +272,37 @@ function render(o) {
   L.push("");
   L.push("## 6. The game's random number generator");
   L.push("");
-  L.push("The game draws its round targets, fragment cells and scrambles from a small linear congruential generator (seed " + M.DEFAULT_SEED + "). Written in JavaScript, `state * 1103515245` exceeds 2^53, so the result is not the integer LCG it was meant to be. It is still deterministic and identical in every engine (IEEE doubles), which is why it is kept unchanged here.");
+  L.push("The game draws its round targets, fragment cells and scrambles from a small linear congruential generator (seed " + M.DEFAULT_SEED + "). Written in JavaScript, `state * 1103515245` exceeds 2^53, so the result is not the integer LCG it was meant to be. It is still deterministic and identical in every engine (IEEE doubles), which is why the game keeps it unchanged: play stays identical. The tests and this script use a separate, well-defined generator (mulberry32) for sampling.");
   L.push("");
   L.push("- Distinct states reached: " + o.rng.distinct_states + "; lead-in " + o.rng.lead_in + " draws, then a cycle of " + o.rng.period + " draws.");
   L.push("- 12-bin histogram of the first 100000 draws: " + o.rng.bins12_of_100000.join(", ") + ".");
   L.push("- First three values: " + o.rng.first_values.join(", ") + ".");
   L.push("");
-  L.push("For a game with a few draws per round this is harmless. It is not suitable for statistics, so the tables above use a separate seeded generator (mulberry32).");
+  L.push("For a game with a few draws per round this is harmless. It is not suitable for statistics, so the tables above use mulberry32 (`Membrane.createMulberry32`, period 2^32, exact integer arithmetic through `Math.imul`). `Membrane.createRng(seed, \"mulberry32\")` selects it; `createRng(seed)` is still the legacy generator the game uses.");
+  L.push("");
+  L.push("### 6b. Does the generator change the conclusions?");
+  L.push("");
+  L.push("The same fragment experiment as section 2, " + o.trials_per_thought + " probes per stored thought, sampled with each generator (share recalled as the right thought / crosstalk / refused):");
+  L.push("");
+  L.push(table(["thoughts stored", "fragment kept", "mulberry32", "legacy game generator"],
+    o.rngcompare.map((r) => [String(r.memory), Math.round(r.fraction * 100) + "%",
+      pct(r.mulberry32.correct) + " / " + pct(r.mulberry32.crosstalk) + " / " + pct(r.mulberry32.refused),
+      pct(r.legacy.correct) + " / " + pct(r.legacy.crosstalk) + " / " + pct(r.legacy.refused)])));
   L.push("");
   L.push("## 7. Fragment assist exactly as in the game");
   L.push("");
-  L.push("The Fragment assist button loads a random half of the target's lit cells (at least 4), drawn with the game's own generator, memory as in section 2. 100 assists per stored thought.");
+  L.push("The Fragment assist button loads a random half of the target's lit cells (at least 4), drawn with the game's own generator, memory as in section 2. " + o.assist_n + " assists per stored thought, once with the game's legacy generator and once with mulberry32 (share recalled / crosstalk / refused).");
   L.push("");
-  L.push(table(["thoughts stored", "recalled", "crosstalk", "refused"], o.assist.map((a) => [String(a.memory), pct(a.correct), pct(a.crosstalk), pct(a.refused)])));
+  L.push(table(["thoughts stored", "legacy (the game)", "mulberry32"], o.assist.map((a) => [String(a.memory),
+    pct(a.legacy.correct) + " / " + pct(a.legacy.crosstalk) + " / " + pct(a.legacy.refused),
+    pct(a.mulberry32.correct) + " / " + pct(a.mulberry32.crosstalk) + " / " + pct(a.mulberry32.refused)])));
+  L.push("");
+  L.push("## 8. The store warning: closest neighbour, not the last one");
+  L.push("");
+  L.push("When a drawn pattern is stored, the game warns if it overlaps a stored thought by more than 0.7 (Jaccard) and names that thought. The original named the last stored thought above 0.7; it now names the closest one. This only changes which name is shown; the stored pattern, recall, gate and score are not affected. One of the eight built-in thoughts with m random cells flipped, checked against the 8-thought memory (500 per built-in thought):");
+  L.push("");
+  L.push(table(["flipped cells", "warning shown", "two or more thoughts above 0.7", "name differs from the original rule"],
+    o.warning.map((w) => [String(w.flipped_cells), pct(w.warned), pct(w.two_or_more_close), pct(w.name_differs)])));
   L.push("");
   L.push("## Reading these numbers honestly");
   L.push("");

@@ -27,6 +27,8 @@ jobs:
         run: node scripts/check_text.js
       - name: Committed behaviour numbers are current
         run: node scripts/behaviour.js --check
+      - name: Committed gate experiment is current
+        run: node scripts/gate_experiment.js --check
 
   browser:
     name: Browser tests (headless Chromium)
@@ -41,3 +43,12 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Page loads, makes no external request, keyboard and bug-fix checks
         run: npm run e2e
+
+  citation:
+    name: CITATION.cff is valid
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install cffconvert
+      - run: cffconvert --validate
